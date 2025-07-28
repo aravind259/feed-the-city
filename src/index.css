@@ -2,39 +2,58 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* FoodShare Connect Design System - Community-focused, warm, sustainable colors */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 120 20% 98%;
+    --foreground: 120 15% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 120 15% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 120 15% 15%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 142 76% 36%;
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 35 77% 62%;
+    --secondary-foreground: 120 15% 15%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 120 20% 96%;
+    --muted-foreground: 120 10% 50%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 35 77% 62%;
+    --accent-foreground: 120 15% 15%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 120 20% 90%;
+    --input: 120 20% 94%;
+    --ring: 142 76% 36%;
+
+    /* Community-focused gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(142 76% 36%), hsl(35 77% 62%));
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(120 20% 98%));
+    --gradient-impact: linear-gradient(45deg, hsl(142 76% 36%), hsl(120 60% 50%));
+    
+    /* Warm food category colors */
+    --color-vegetables: 142 76% 36%;
+    --color-fruits: 35 77% 62%;
+    --color-bread: 30 60% 55%;
+    --color-prepared: 15 70% 60%;
+    --color-dairy: 200 30% 70%;
+
+    /* Shadows with primary color tint */
+    --shadow-soft: 0 4px 20px -4px hsl(142 76% 36% / 0.1);
+    --shadow-medium: 0 8px 30px -8px hsl(142 76% 36% / 0.15);
+    --shadow-strong: 0 20px 40px -10px hsl(142 76% 36% / 0.2);
+
+    /* Smooth transitions */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
     --radius: 0.5rem;
 
