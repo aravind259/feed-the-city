@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { Hero } from "@/components/Hero";
 import { Navigation } from "@/components/Navigation";
 import { FilterBar } from "@/components/FilterBar";
@@ -7,6 +9,7 @@ import { FoodCard } from "@/components/FoodCard";
 import { CreateDonationForm } from "@/components/CreateDonationForm";
 import { ImpactDashboard } from "@/components/ImpactDashboard";
 import { ProfilePage } from "@/components/ProfilePage";
+import { Button } from "@/components/ui/button";
 
 // Mock data for demonstration
 const mockListings = [
@@ -57,37 +60,142 @@ const mockImpactStats = {
 const Index = () => {
   const [activeTab, setActiveTab] = useState('home');
   const [showHero, setShowHero] = useState(true);
-  const [listings, setListings] = useState(mockListings);
+  const [listings, setListings] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>();
   const [selectedDistance, setSelectedDistance] = useState<string>();
+  const [loading, setLoading] = useState(true);
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
+
+  // Fetch food listings
+  useEffect(() => {
+    const fetchListings = async () => {
+      try {
+        const { data: foodListings, error } = await supabase
+          .from('food_listings')
+          .select(`
+            *,
+            profiles(display_name)
+          `)
+          .eq('is_claimed', false)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        
+        const formattedListings = foodListings?.map((listing: any) => ({
+          id: listing.id,
+          title: listing.title,
+          description: listing.description,
+          category: listing.category,
+          quantity: listing.quantity,
+          expiryTime: listing.expiry_time,
+          location: listing.location,
+          donor: listing.profiles?.display_name || 'Anonymous',
+          distance: '0.5 km', // Would calculate based on user location
+          isClaimed: listing.is_claimed,
+          pickupInstructions: listing.pickup_instructions
+        })) || [];
+
+        setListings(formattedListings);
+      } catch (error: any) {
+        toast({
+          title: "Error loading listings",
+          description: error.message,
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchListings();
+  }, [toast]);
+
+  // Check auth and redirect if needed
+  useEffect(() => {
+    if (!authLoading && !user) {
+      window.location.href = '/auth';
+    }
+  }, [user, authLoading]);
 
   const handleGetStarted = () => {
     setShowHero(false);
     setActiveTab('home');
   };
 
-  const handleCreateDonation = (donation: any) => {
-    setListings(prev => [donation, ...prev]);
-    setActiveTab('home');
-    toast({
-      title: "Food shared successfully! 🎉",
-      description: "Your donation is now visible to the community.",
-    });
+  const handleCreateDonation = async (donation: any) => {
+    try {
+      const { data, error } = await supabase
+        .from('food_listings')
+        .insert({
+          user_id: user?.id,
+          title: donation.title,
+          description: donation.description,
+          category: donation.category,
+          quantity: donation.quantity,
+          expiry_time: donation.expiryTime,
+          location: donation.location,
+          pickup_instructions: donation.pickupInstructions
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Add to local state
+      const newListing = {
+        id: data.id,
+        title: data.title,
+        description: data.description,
+        category: data.category,
+        quantity: data.quantity,
+        expiryTime: data.expiry_time,
+        location: data.location,
+        donor: user?.user_metadata?.display_name || 'You',
+        distance: '0.0 km',
+        isClaimed: false,
+        pickupInstructions: data.pickup_instructions
+      };
+      
+      setListings(prev => [newListing, ...prev]);
+      setActiveTab('home');
+      toast({
+        title: "Food shared successfully! 🎉",
+        description: "Your donation is now visible to the community.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error sharing food",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleClaimFood = (id: string) => {
-    setListings(prev => 
-      prev.map(item => 
-        item.id === id 
-          ? { ...item, isClaimed: true }
-          : item
-      )
-    );
-    toast({
-      title: "Food claimed! 🍽️",
-      description: "Please coordinate pickup with the donor.",
-    });
+  const handleClaimFood = async (id: string) => {
+    try {
+      const { error } = await supabase.rpc('claim_food', { listing_id: id });
+      
+      if (error) throw error;
+
+      setListings(prev => 
+        prev.map(item => 
+          item.id === id 
+            ? { ...item, isClaimed: true }
+            : item
+        )
+      );
+      toast({
+        title: "Food claimed! 🍽️",
+        description: "Please coordinate pickup with the donor.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error claiming food",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const handleFilterChange = (type: 'category' | 'distance' | 'time', value: string | null) => {
@@ -103,6 +211,31 @@ const Index = () => {
     // Distance filtering would be implemented with actual location data
     return true;
   });
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="text-center space-y-4 max-w-md">
+          <h2 className="text-2xl font-bold">Welcome to Feed the City</h2>
+          <p className="text-muted-foreground">Please sign in to start sharing and claiming food.</p>
+          <Button onClick={() => window.location.href = '/auth'}>
+            Sign In / Sign Up
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (showHero) {
     return (
