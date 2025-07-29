@@ -27,7 +27,7 @@ export const ProfilePage = ({ user }: ProfilePageProps) => {
   // Mock data for demo purposes
   const mockUser = user || {
     id: '1',
-    name: 'Sarah Chen',
+    name: 'AravindKumar',
     email: 'sarah.chen@email.com',
     avatar: '',
     location: 'San Francisco, CA',
