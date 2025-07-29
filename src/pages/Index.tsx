@@ -6,6 +6,7 @@ import { FilterBar } from "@/components/FilterBar";
 import { FoodCard } from "@/components/FoodCard";
 import { CreateDonationForm } from "@/components/CreateDonationForm";
 import { ImpactDashboard } from "@/components/ImpactDashboard";
+import { ProfilePage } from "@/components/ProfilePage";
 
 // Mock data for demonstration
 const mockListings = [
@@ -161,9 +162,8 @@ const Index = () => {
         )}
 
         {activeTab === 'profile' && (
-          <div className="p-4 text-center py-20">
-            <h2 className="text-2xl font-bold mb-4">Profile Coming Soon</h2>
-            <p className="text-muted-foreground">User profiles and settings will be available after Supabase integration.</p>
+          <div className="p-4">
+            <ProfilePage />
           </div>
         )}
       </div>
