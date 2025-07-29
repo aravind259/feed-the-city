@@ -14,13 +14,143 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      claims: {
+        Row: {
+          claimed_at: string
+          claimer_id: string
+          donor_id: string
+          id: string
+          listing_id: string
+          notes: string | null
+          status: string
+        }
+        Insert: {
+          claimed_at?: string
+          claimer_id: string
+          donor_id: string
+          id?: string
+          listing_id: string
+          notes?: string | null
+          status?: string
+        }
+        Update: {
+          claimed_at?: string
+          claimer_id?: string
+          donor_id?: string
+          id?: string
+          listing_id?: string
+          notes?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "claims_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "food_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      food_listings: {
+        Row: {
+          category: string
+          claimed_at: string | null
+          claimed_by: string | null
+          created_at: string
+          description: string | null
+          expiry_time: string
+          id: string
+          image_url: string | null
+          is_claimed: boolean
+          location: string
+          pickup_instructions: string | null
+          quantity: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          claimed_at?: string | null
+          claimed_by?: string | null
+          created_at?: string
+          description?: string | null
+          expiry_time: string
+          id?: string
+          image_url?: string | null
+          is_claimed?: boolean
+          location: string
+          pickup_instructions?: string | null
+          quantity: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          claimed_at?: string | null
+          claimed_by?: string | null
+          created_at?: string
+          description?: string | null
+          expiry_time?: string
+          id?: string
+          image_url?: string | null
+          is_claimed?: boolean
+          location?: string
+          pickup_instructions?: string | null
+          quantity?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          display_name: string | null
+          email: string | null
+          id: string
+          location: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id: string
+          location?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          location?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      claim_food: {
+        Args: { listing_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
