@@ -75,7 +75,7 @@ const Index = () => {
           .from('food_listings')
           .select(`
             *,
-            profiles(display_name)
+            profiles!fk_food_listings_user_id(display_name)
           `)
           .eq('is_claimed', false)
           .order('created_at', { ascending: false });
