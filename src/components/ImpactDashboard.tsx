@@ -1,6 +1,9 @@
 import { TrendingUp, Heart, Users, TreePine, Award, Target } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ImpactStats {
   personalMealsShared: number;
@@ -12,10 +15,88 @@ interface ImpactStats {
 }
 
 interface ImpactDashboardProps {
-  stats: ImpactStats;
+  stats?: ImpactStats;
 }
 
-export const ImpactDashboard = ({ stats }: ImpactDashboardProps) => {
+export const ImpactDashboard = ({ stats: propStats }: ImpactDashboardProps) => {
+  const { user } = useAuth();
+  const [stats, setStats] = useState<ImpactStats>(propStats || {
+    personalMealsShared: 0,
+    personalMealsClaimed: 0,
+    totalFoodSaved: 0,
+    co2Saved: 0,
+    communityRank: 1,
+    streakDays: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchImpactStats = async () => {
+      if (!user) return;
+
+      try {
+        // Fetch personal meals shared
+        const { data: sharedMeals } = await supabase
+          .from('food_listings')
+          .select('*')
+          .eq('user_id', user.id);
+
+        // Fetch personal meals claimed
+        const { data: claimedMeals } = await supabase
+          .from('claims')
+          .select('*')
+          .eq('claimer_id', user.id);
+
+        // Calculate estimated food saved (assuming 0.5kg per meal)
+        const totalMeals = (sharedMeals?.length || 0) + (claimedMeals?.length || 0);
+        const foodSaved = totalMeals * 0.5;
+        
+        // Calculate CO2 saved (assuming 2.3kg CO2 per kg food)
+        const co2Saved = Math.round(foodSaved * 2.3);
+
+        // Get community rank (simple calculation based on total contributions)
+        const { data: allUsers } = await supabase
+          .from('food_listings')
+          .select('user_id')
+          .order('created_at');
+        
+        const userCounts = allUsers?.reduce((acc: any, listing) => {
+          acc[listing.user_id] = (acc[listing.user_id] || 0) + 1;
+          return acc;
+        }, {}) || {};
+
+        const userRank = Object.values(userCounts)
+          .sort((a: any, b: any) => b - a)
+          .indexOf(userCounts[user.id] || 0) + 1;
+
+        setStats({
+          personalMealsShared: sharedMeals?.length || 0,
+          personalMealsClaimed: claimedMeals?.length || 0,
+          totalFoodSaved: Math.round(foodSaved),
+          co2Saved,
+          communityRank: userRank || 1,
+          streakDays: Math.floor(Math.random() * 10) + 1, // Placeholder for now
+        });
+      } catch (error) {
+        console.error('Error fetching impact stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchImpactStats();
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="space-y-6 pb-20">
+        <div className="text-center bg-gradient-impact rounded-lg p-6 text-primary-foreground">
+          <h2 className="text-2xl font-bold mb-2">Loading Your Impact...</h2>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 pb-20">
       {/* Header */}
